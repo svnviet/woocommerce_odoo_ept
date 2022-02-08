@@ -701,8 +701,11 @@ class woo_process_import_export(models.TransientModel):
                 is_set_stock = self.update_stock_in_product
                 is_set_image = self.update_image_in_product_export
                 is_publish = self.publish
-## publish all twinbru product
-            is_publish = self.publish
+    ## publish all twinbru product
+            is_set_price = True
+            is_set_stock = True
+            is_set_image = True
+            is_publish = True
             if woo_template_ids:
                 woo_templates = woo_product_tmpl_obj.search(
                     [('woo_instance_id', '=', instance.id), ('id', 'in', woo_template_ids)])
