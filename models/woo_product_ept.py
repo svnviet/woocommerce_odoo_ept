@@ -3665,7 +3665,8 @@ class woo_product_template_ept(models.Model):
                                          update_image, template)
 
             ## update product data before sync
-            data.update({'sku': 'BRU00' + data.get('sku')})
+            if template.product_tw_id:
+                data.update({'sku': 'BRU00' + data.get('sku')})
 
             new_product = wcapi.post('products', {'product': data})
             if not isinstance(new_product, requests.models.Response):
