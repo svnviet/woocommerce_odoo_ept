@@ -433,8 +433,12 @@ class woo_process_import_export(models.TransientModel):
         woo_product_categ = self.env['woo.product.categ.ept']
         woo_product_image_obj = self.env['woo.product.image.ept']
         active_template_ids = self._context.get('active_ids', [])
-        template_ids = self.env['product.template'].browse(active_template_ids)
-        odoo_templates = template_ids.filtered(lambda template: template.type == 'product')
+
+        # template_ids = self.env['product.template'].browse(active_template_ids)
+        # odoo_templates = template_ids.filtered(lambda template: template.type == 'product')
+    #edit get all product in twinbru
+        template_ids = self.env['product.template'].search([('product_brand_id','=',11)])
+        odoo_templates = 123
         if not odoo_templates:
             raise Warning(_('It seems like selected products are not Storable Products.'))
         for template in self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '=', False)]):
