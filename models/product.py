@@ -21,6 +21,8 @@ class product_product(models.Model):
 class product_template(models.Model):
     _inherit = 'product.template'
 
+    export_odoo_in_woo_connector = fields.Boolean()
+
     @api.multi
     def _woo_template_count(self):
         woo_product_template_obj = self.env['woo.product.template.ept']
