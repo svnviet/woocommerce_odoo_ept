@@ -422,6 +422,7 @@ class woo_process_import_export(models.TransientModel):
             bru_products = self.env['product.template'].search([('product_brand_id', '=', 11), ('export_odoo_in_woo_connector', '=', False)], limit=80)
             if not bru_products:
                 break
+            bru_products.export_odoo_in_woo_connector = True
             self.with_delay(description="Prepare product for export ").prepare_product_for_export_job(bru_products)
 
     @job
