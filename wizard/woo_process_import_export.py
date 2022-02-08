@@ -441,7 +441,7 @@ class woo_process_import_export(models.TransientModel):
             if self.check_duplicate_product_tw(template):
                 continue
             ## update barcode == sku with product in twinbru
-            template.barcode = 'BRU00' + template.product_tw_id
+            # template.barcode = 'BRU00' + template.product_tw_id
         odoo_templates = self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '!=', False)])
         if not odoo_templates:
             raise Warning("Barcode (SKU) not set in selected products")
@@ -704,7 +704,7 @@ class woo_process_import_export(models.TransientModel):
     ## publish all twinbru product
             is_set_price = True
             is_set_stock = True
-            is_set_image = False
+            is_set_image = True
             is_publish = True
             if woo_template_ids:
                 woo_templates = woo_product_tmpl_obj.search(
