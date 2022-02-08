@@ -416,12 +416,16 @@ class woo_process_import_export(models.TransientModel):
             return True
         return False
 
-
+# vietnt use for mass export product in twinbru
     def prepare_product_for_export(self):
-        self.with_delay(description="Prepare product for export ").prepare_product_for_export_job()
+        for i in range(0, 500):
+            bru_products = self.env['product.template'].search([('product_brand_id', '=', 11), ('export_odoo_in_woo_connector', '=', False)], limit=80)
+            if not bru_products:
+                break
+            self.with_delay(description="Prepare product for export ").prepare_product_for_export_job(bru_products)
 
     @job
-    def prepare_product_for_export_job(self):
+    def prepare_product_for_export_job(self, product_ids):
     # def prepare_product_for_export(self):
         #     _logger.info('Start compute barcode')
         #     brand = self.env['product.brand'].search([('name', '=', 'Bru')])
@@ -443,7 +447,7 @@ class woo_process_import_export(models.TransientModel):
         # template_ids = self.env['product.template'].browse(active_template_ids)
         # odoo_templates = template_ids.filtered(lambda template: template.type == 'product')
     #edit get all product in twinbru
-        template_ids = self.env['product.template'].search([('product_brand_id','=',11)])
+        template_ids = product_ids
         odoo_templates = 123
         if not odoo_templates:
             raise Warning(_('It seems like selected products are not Storable Products.'))
