@@ -416,7 +416,13 @@ class woo_process_import_export(models.TransientModel):
             return True
         return False
 
+
     def prepare_product_for_export(self):
+        self.with_context().prepare_product_for_export_job()
+
+    @job
+    def prepare_product_for_export_job(self):
+    # def prepare_product_for_export(self):
         #     _logger.info('Start compute barcode')
         #     brand = self.env['product.brand'].search([('name', '=', 'Bru')])
         #     product_tmpl = self.env['product.template'].search([('product_brand_id', '=', brand.id), ('product_tw_id', '=', True)])
@@ -432,8 +438,8 @@ class woo_process_import_export(models.TransientModel):
         woo_product_obj = self.env['woo.product.product.ept']
         woo_product_categ = self.env['woo.product.categ.ept']
         woo_product_image_obj = self.env['woo.product.image.ept']
-        active_template_ids = self._context.get('active_ids', [])
 
+        # active_template_ids = self._context.get('active_ids', [])
         # template_ids = self.env['product.template'].browse(active_template_ids)
         # odoo_templates = template_ids.filtered(lambda template: template.type == 'product')
     #edit get all product in twinbru
