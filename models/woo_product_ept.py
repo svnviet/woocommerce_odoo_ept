@@ -3663,6 +3663,8 @@ class woo_product_template_ept(models.Model):
             template = woo_template.product_tmpl_id
             data = self.get_product_data(wcapi, instance, woo_template, publish, update_price, update_stock,
                                          update_image, template)
+            ## update product data before sync
+
             new_product = wcapi.post('products', {'product': data})
             if not isinstance(new_product, requests.models.Response):
                 transaction_log_obj.create(

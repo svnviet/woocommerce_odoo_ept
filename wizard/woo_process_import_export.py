@@ -4,6 +4,7 @@ from _collections import OrderedDict
 from _datetime import datetime
 from datetime import datetime
 import logging
+from odoo.addons.queue_job.job import job
 
 _logger = logging.getLogger(__name__)
 
@@ -99,7 +100,7 @@ class woo_process_import_export(models.TransientModel):
     @api.multi
     def execute(self):
         if self.is_export_products:
-            self.export_products()
+            self.with_delay(description='Export Products').export_products()
         if self.is_update_products:
             self.update_products()
         if self.is_update_price:
@@ -438,8 +439,9 @@ class woo_process_import_export(models.TransientModel):
             raise Warning(_('It seems like selected products are not Storable Products.'))
         for template in self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '=', False)]):
             if self.check_duplicate_product_tw(template):
-                continue 
-            template.barcode = template.product_tw_id
+                continue
+            ## update barcode == sku with product in twinbru
+            template.barcode = 'BRU00' + template.product_tw_id
         odoo_templates = self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '!=', False)])
         if not odoo_templates:
             raise Warning("Barcode (SKU) not set in selected products")
@@ -657,6 +659,7 @@ class woo_process_import_export(models.TransientModel):
         product_ids = self.env['product.template'].search([('product_brand_id.name', '=', 'Bru')])
 
     @api.multi
+    @job
     def export_products(self):
         instance_settings = {}
         config_settings = {}
@@ -698,7 +701,8 @@ class woo_process_import_export(models.TransientModel):
                 is_set_stock = self.update_stock_in_product
                 is_set_image = self.update_image_in_product_export
                 is_publish = self.publish
-
+## publish all twinbru product
+            is_publish = self.publish
             if woo_template_ids:
                 woo_templates = woo_product_tmpl_obj.search(
                     [('woo_instance_id', '=', instance.id), ('id', 'in', woo_template_ids)])
