@@ -3663,7 +3663,9 @@ class woo_product_template_ept(models.Model):
             template = woo_template.product_tmpl_id
             data = self.get_product_data(wcapi, instance, woo_template, publish, update_price, update_stock,
                                          update_image, template)
+
             ## update product data before sync
+            # data.update({'sku': 'BRU00' + data.get('sku')})
 
             new_product = wcapi.post('products', {'product': data})
             if not isinstance(new_product, requests.models.Response):
@@ -3684,6 +3686,12 @@ class woo_product_template_ept(models.Model):
                 continue
             try:
                 response = new_product.json()
+                transaction_log_obj.create({
+                    'message': "Export product %s to WooCommerce for instance %s. \n%s" % (data.get('sku'), instance.name, e),
+                    'mismatch_details': True,
+                    'type': 'product',
+                    'woo_instance_id': instance.id
+                })
             except Exception as e:
                 transaction_log_obj.create({
                     'message': "Json Error : While export product to WooCommerce for instance %s. \n%s" % (

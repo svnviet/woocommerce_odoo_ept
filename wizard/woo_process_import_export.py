@@ -663,7 +663,7 @@ class woo_process_import_export(models.TransientModel):
     def export_products(self):
         instance_settings = {}
         config_settings = {}
-
+        logging.info('-------------------Export Product----------------------')
         is_set_price = False
         is_set_stock = False
         is_set_image = False
@@ -704,7 +704,7 @@ class woo_process_import_export(models.TransientModel):
     ## publish all twinbru product
             is_set_price = True
             is_set_stock = True
-            is_set_image = True
+            is_set_image = False
             is_publish = True
             if woo_template_ids:
                 woo_templates = woo_product_tmpl_obj.search(
