@@ -716,9 +716,9 @@ class woo_process_import_export(models.TransientModel):
                 self.check_products(woo_templates)
             if instance.woo_version == 'old' and woo_templates:
                 for pt in range(0, 300):
-                    woo_templates = self.update_product_batch()
+                    woo_templates = self.update_product_batch(instance)
                     if not woo_templates:
-                        return
+                        return True
                     woo_product_tmpl_obj.with_delay(description="Product is export ").export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
                     for template in woo_templates:
                         template.exported_in_woo = True
@@ -727,8 +727,8 @@ class woo_process_import_export(models.TransientModel):
         return True
 
 # update 50 product for once
-    def update_product_batch(self):
-        product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', 'instance.id'),
+    def update_product_batch(self, instance):
+        product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', instance.id),
                                                    ('exported_in_woo', '!=', True)], limit=50)
         return product_ids
 
