@@ -717,8 +717,11 @@ class woo_process_import_export(models.TransientModel):
             if instance.woo_version == 'old' and woo_templates:
                 for pt in range(0, 300):
                     woo_templates = self.update_product_batch()
+                    if not woo_templates:
+                        return
                     woo_product_tmpl_obj.with_delay(description="Product is export ").export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
-                    pt.exported_in_woo = True
+                    for template in woo_templates:
+                        template.exported_in_woo = True
             elif instance.woo_version == 'new' and woo_templates:
                 woo_product_tmpl_obj.export_new_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
         return True
