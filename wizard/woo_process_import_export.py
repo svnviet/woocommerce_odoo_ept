@@ -731,12 +731,20 @@ class woo_process_import_export(models.TransientModel):
                     [('woo_instance_id', '=', instance.id), ('exported_in_woo', '=', False)])
                 self.check_products(woo_templates)
             if instance.woo_version == 'old' and woo_templates:
-                woo_product_tmpl_obj.export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock,
-                                                            is_publish, is_set_image)
+                for pt in range(0, 300):
+                    woo_templates = self.update_product_batch()
+                    woo_product_tmpl_obj.with_delay(description="Product is export ").export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
+                    pt.exported_in_woo = True
             elif instance.woo_version == 'new' and woo_templates:
-                woo_product_tmpl_obj.export_new_products_in_woo(instance, woo_templates, is_set_price, is_set_stock,
-                                                                is_publish, is_set_image)
+                woo_product_tmpl_obj.export_new_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
         return True
+
+# update 50 product for once
+    def update_product_batch(self):
+        woo_product_tmpl_obj = self.env['woo.product.template.ept']
+        product_ids = woo_product_tmpl_obj.search([('woo_instance_id', '=', 'instance.id'), ('exported_in_woo', '=', False)], limit=50)
+        return product_ids
+
 
     @api.multi
     def sync_selective_products(self):
