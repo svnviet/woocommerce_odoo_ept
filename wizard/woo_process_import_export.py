@@ -728,8 +728,8 @@ class woo_process_import_export(models.TransientModel):
 
 # update 50 product for once
     def update_product_batch(self):
-        woo_product_tmpl_obj = self.env['woo.product.template.ept']
-        product_ids = woo_product_tmpl_obj.search([('woo_instance_id', '=', 'instance.id'), ('exported_in_woo', '=', False)], limit=50)
+        product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', 'instance.id'),
+                                                   ('exported_in_woo', '!=', True)], limit=50)
         return product_ids
 
 
