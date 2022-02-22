@@ -724,7 +724,7 @@ class woo_process_import_export(models.TransientModel):
     ## publish all twinbru product
             is_set_price = True
             is_set_stock = True
-            is_set_image = True
+            is_set_image = False
             is_publish = True
             if woo_template_ids:
                 woo_templates = woo_product_tmpl_obj.search(
@@ -753,7 +753,7 @@ class woo_process_import_export(models.TransientModel):
 # update 50 product for once
     def update_product_batch(self, instance):
         product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', instance.id),
-                                                   ('exported_in_woo', '!=', True)], limit=20)
+                                                   ('exported_in_woo', '!=', True)], limit=10)
         return product_ids
 
 
