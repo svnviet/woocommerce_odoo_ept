@@ -100,7 +100,8 @@ class woo_process_import_export(models.TransientModel):
     @api.multi
     def execute(self):
         if self.is_export_products:
-            self.with_delay(description='Export Products').export_products()
+            # self.with_delay(description='Export Products').export_products()
+            self.export_products()
         if self.is_update_products:
             self.update_products()
         if self.is_update_price:
@@ -427,7 +428,7 @@ class woo_process_import_export(models.TransientModel):
             self.with_delay(description="Prepare product for export ").prepare_product_for_export_job(bru_products)
 
     @job
-    def prepare_product_for_export_job(self, product_ids):
+    def prepare_product_for_export_job(self, product_ids=''):
     # def prepare_product_for_export(self):
         #     _logger.info('Start compute barcode')
         #     brand = self.env['product.brand'].search([('name', '=', 'Bru')])
@@ -453,11 +454,11 @@ class woo_process_import_export(models.TransientModel):
         odoo_templates = 123
         if not odoo_templates:
             raise Warning(_('It seems like selected products are not Storable Products.'))
-        for template in self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '=', False)]):
-            if self.check_duplicate_product_tw(template):
-                continue
-            ## update barcode == sku with product in twinbru
-            template.barcode = 'BRU00' + str(template.product_tw_id)
+        # for template in self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '=', False)]):
+        #     if self.check_duplicate_product_tw(template):
+        #         continue
+        #     ## update barcode == sku with product in twinbru
+        #     template.barcode = 'BRU00' + str(template.product_tw_id)
         odoo_templates = self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '!=', False)])
         if not odoo_templates:
             raise Warning("Barcode (SKU) not set in selected products")
@@ -674,8 +675,11 @@ class woo_process_import_export(models.TransientModel):
     def get_all_product_for_export(self):
         product_ids = self.env['product.template'].search([('product_brand_id.name', '=', 'Bru')])
 
+    # @api.multi
+    # @job
+    # def export_products(self):
+
     @api.multi
-    @job
     def export_products(self):
         instance_settings = {}
         config_settings = {}
@@ -731,13 +735,17 @@ class woo_process_import_export(models.TransientModel):
                     [('woo_instance_id', '=', instance.id), ('exported_in_woo', '=', False)])
                 self.check_products(woo_templates)
             if instance.woo_version == 'old' and woo_templates:
-                for pt in range(0, 300):
-                    woo_templates = self.update_product_batch(instance)
-                    if not woo_templates:
-                        return True
-                    woo_product_tmpl_obj.with_delay(description="Product is export ").export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
-                    for template in woo_templates:
-                        template.exported_in_woo = True
+                woo_templates = self.update_product_batch(instance)
+                woo_product_tmpl_obj.export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
+                for template in woo_templates:
+                    template.exported_in_woo = True
+                # for pt in range(0, 300):
+                #     woo_templates = self.update_product_batch(instance)
+                #     if not woo_templates:
+                #         return True
+                #     woo_product_tmpl_obj.with_delay(description="Product is export ").export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
+                #     for template in woo_templates:
+                #         template.exported_in_woo = True
             elif instance.woo_version == 'new' and woo_templates:
                 woo_product_tmpl_obj.export_new_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
         return True
