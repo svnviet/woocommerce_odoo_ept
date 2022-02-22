@@ -3695,12 +3695,6 @@ class woo_product_template_ept(models.Model):
                 continue
             try:
                 response = new_product.json()
-                transaction_log_obj.create({
-                    'message': "Export product %s to WooCommerce for instance %s. \n%s" % (data.get('sku'), instance.name, e),
-                    'mismatch_details': True,
-                    'type': 'product',
-                    'woo_instance_id': instance.id
-                })
             except Exception as e:
                 transaction_log_obj.create({
                     'message': "Json Error : While export product to WooCommerce for instance %s. \n%s" % (
