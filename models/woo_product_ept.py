@@ -3666,14 +3666,17 @@ class woo_product_template_ept(models.Model):
 
         for woo_template in woo_templates:
             template = woo_template.product_tmpl_id
+            _logger.info('--------- Get Product Data ----------')
             data = self.get_product_data(wcapi, instance, woo_template, publish, update_price, update_stock,
                                          update_image, template)
 
             ## update product data before sync
-            if template.product_tw_id and 'BRU00' not in data.get('sku'):
-                data.update({'sku': 'BRU00' + data.get('sku')})
-
+            # if template.product_tw_id and 'BRU00' not in data.get('sku'):
+            #     data.update({'sku': 'BRU001' + data.get('sku')})
+            data.update({'sku': 'BRU001' + data.get('sku')})
+            _logger.info('---------Product Data ----------' + str(data))
             new_product = wcapi.post('products', {'product': data})
+            _logger.info('---------Woo response Product Data ----------' + str(new_product.text))
             if not isinstance(new_product, requests.models.Response):
                 transaction_log_obj.create(
                     {'message': "Export Product \nResponse is not in proper format :: %s" % (new_product),
