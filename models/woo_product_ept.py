@@ -3676,6 +3676,10 @@ class woo_product_template_ept(models.Model):
 
             if 'BRU00' not in data.get('sku'):
                 data.update({'sku': 'BRU001' + data.get('sku')})
+            else:
+                data_sku = data.get('sku')
+                data.update({'sku': data_sku[:5] + '1' + data_sku[5:]})
+
             _logger.info('---------Product Data ----------' + str(data))
             new_product = wcapi.post('products', {'product': data})
             _logger.info('---------Woo response Product Data ----------' + str(new_product.text))
