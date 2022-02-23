@@ -221,6 +221,7 @@
 		                				<field name="is_update_products"/>
 										<field name="is_publish_products"/>
 										<field name="is_unpublish_products"/>
+										<field name="is_export_products_all"/>
 		                			</group>
 		                			<group name="mis_product" string="Miscellaneous">
 		                				<field name="is_update_stock"/>
