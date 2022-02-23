@@ -158,20 +158,19 @@ class woo_process_import_export(models.TransientModel):
         is_set_stock = True
         is_set_image = True
         is_publish = True
-        woo_product_tmpl_obj = self.env['woo.product.template.ept']
         instances = self.env['woo.instance.ept'].search([('state', '=', 'confirmed')])
         for instance in instances:
             while True:
                 woo_templates = self.update_product_batch(instance)
                 if not woo_templates:
                     break
-                woo_product_tmpl_obj.export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock,
-                                                            is_publish, is_set_image)
+                self.with_delay(description=f"Export Product {str(woo_templates.ids)}").export_products_all_wrapper(instance, woo_templates, is_set_price, is_set_stock
+                                                 , is_publish, is_set_image)
                 for template in woo_templates:
                     template.exported_in_woo = True
         return True
 
-
+    @api.multi
     @job
     def export_products_all_wrapper(self, instance, woo_templates, is_set_price,
                                     is_set_stock, is_publish, is_set_image):
