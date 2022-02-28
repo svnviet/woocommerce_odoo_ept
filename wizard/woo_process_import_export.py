@@ -171,8 +171,6 @@ class woo_process_import_export(models.TransientModel):
                 self.with_delay(description=f"Export Product {str(woo_templates.ids)}").export_products_all_wrapper(instance, woo_templates, is_set_price, is_set_stock
                                                  , is_publish, is_set_image)
                 logging.info('-- Finish create job --')
-                for template in woo_templates:
-                    template.exported_in_woo = True
         return True
 
     @api.multi
@@ -184,9 +182,8 @@ class woo_process_import_export(models.TransientModel):
         return True
 
     def update_product_batch(self, instance):
-
         product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', instance.id),
-                                                                   ('exported_in_woo', '!=', True)], limit=1)
+                                                                   ('woo_tmpl_id', '=', False)], limit=1)
         return product_ids
 
     @api.multi
