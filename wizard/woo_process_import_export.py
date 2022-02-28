@@ -154,6 +154,7 @@ class woo_process_import_export(models.TransientModel):
 
     @api.multi
     def export_products_all(self):
+        logging.info('----- export all products -----')
         is_set_price = True
         is_set_stock = True
         is_set_image = True
@@ -164,6 +165,7 @@ class woo_process_import_export(models.TransientModel):
                 woo_templates = self.update_product_batch(instance)
                 if not woo_templates:
                     break
+                logging.info('-- Create Export Product Job --')
                 self.with_delay(description=f"Export Product {str(woo_templates.ids)}").export_products_all_wrapper(instance, woo_templates, is_set_price, is_set_stock
                                                  , is_publish, is_set_image)
                 for template in woo_templates:
@@ -757,11 +759,6 @@ class woo_process_import_export(models.TransientModel):
                 is_set_stock = self.update_stock_in_product
                 is_set_image = self.update_image_in_product_export
                 is_publish = self.publish
-    ## publish all twinbru product
-            is_set_price = True
-            is_set_stock = True
-            is_set_image = True
-            is_publish = True
             if woo_template_ids:
                 woo_templates = woo_product_tmpl_obj.search(
                     [('woo_instance_id', '=', instance.id), ('id', 'in', woo_template_ids)])
@@ -771,17 +768,9 @@ class woo_process_import_export(models.TransientModel):
                     [('woo_instance_id', '=', instance.id), ('exported_in_woo', '=', False)])
                 self.check_products(woo_templates)
             if instance.woo_version == 'old' and woo_templates:
-                woo_templates = self.update_product_batch(instance)
                 woo_product_tmpl_obj.export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
                 for template in woo_templates:
                     template.exported_in_woo = True
-                # for pt in range(0, 300):
-                #     woo_templates = self.update_product_batch(instance)
-                #     if not woo_templates:
-                #         return True
-                #     woo_product_tmpl_obj.with_delay(description="Product is export ").export_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
-                #     for template in woo_templates:
-                #         template.exported_in_woo = True
             elif instance.woo_version == 'new' and woo_templates:
                 woo_product_tmpl_obj.export_new_products_in_woo(instance, woo_templates, is_set_price, is_set_stock, is_publish, is_set_image)
         return True
