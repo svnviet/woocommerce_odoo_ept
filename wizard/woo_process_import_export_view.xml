@@ -48,7 +48,6 @@
 						<p> Click on "Update Product Categories" button to update the selected product categories and it's <b>parent categories</b> in WooCommerce</p>
 					</group>					
                 	<footer>
-<!--						<button name="prepare_product_for_update" invisible="context.get('process','') != 'prepare_product_for_update'" string="Prepare Product For Update" type="object" class="oe_highlight"/>-->
                         <button name="prepare_product_for_export" invisible="context.get('process','') != 'prepare_product_for_export'" string="Prepare Product For Export" type="object" class="oe_highlight"/>
                         <button name="export_products" invisible="context.get('process','') != 'export_products'" string="Export Products" type="object" class="oe_highlight"/>
                         <button name="publish_multiple_products" invisible="context.get('process','') != 'publish_multiple_products'" string="Publish Multiple Products" type="object" class="oe_highlight"/>
@@ -69,14 +68,6 @@
                </form>
             </field>
         </record>
-
-<!--		<act_window name="Prepare Product For Update in Woo" res_model="woo.process.import.export"-->
-<!--		src_model="product.template" view_mode="form" view_type="form"-->
-<!--		target="new" multi="True" key2="client_action_multi"-->
-<!--		id="action_wizard_woo_prepare_product_for_update"-->
-<!--		view_id="view_woo_process_import_export_from_more_ept"-->
-<!--		context="{'process':'prepare_product_for_update'}"/>-->
-
         
        	<act_window name="Prepare Product For Export in Woo" res_model="woo.process.import.export"
 		src_model="product.template" view_mode="form" view_type="form"

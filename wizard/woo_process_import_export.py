@@ -104,7 +104,6 @@ class woo_process_import_export(models.TransientModel):
         if self.is_export_products_all:
             self.export_products_all()
         if self.is_export_products:
-            # self.with_delay(description='Export Products').export_products()
             self.export_products()
         if self.is_update_products:
             self.update_products()
@@ -154,12 +153,17 @@ class woo_process_import_export(models.TransientModel):
 
     @api.multi
     def export_products_all(self):
-        logging.info('----- export all products -----')
         is_set_price = True
         is_set_stock = True
         is_set_image = True
         is_publish = True
         instances = self.env['woo.instance.ept'].search([('state', '=', 'confirmed')])
+        product_woo_all = self.env['woo.product.product.ept'].search([])
+
+        # using for update product_tw_id from barcode
+        for product in product_woo_all:
+            product.product_tmpl_id.product_tw_id = product.product_tmpl_id.barcode
+
         for instance in instances:
             # Uncheck products are not exported
             products_check = self.env['woo.product.template.ept'].search(
@@ -167,16 +171,13 @@ class woo_process_import_export(models.TransientModel):
             for product in products_check:
                 product.exported_in_woo = False
             # Starting create queue job
-            logging.info(f'-- Create update Job for instances {instance.name} --')
             while True:
                 woo_templates = self.update_product_batch(instance)
-                logging.info(f'-- Product is export {str(woo_templates.ids)}')
                 if not woo_templates:
                     break
-                logging.info('-- Create Export Product Job --')
                 self.with_delay(description=f"Export Product {str(woo_templates.ids)}").export_products_all_wrapper(instance, woo_templates, is_set_price, is_set_stock
                                                  , is_publish, is_set_image)
-                logging.info('-- Finish create job --')
+
                 for template in woo_templates:
                     template.exported_in_woo = True
         return True
@@ -718,13 +719,6 @@ class woo_process_import_export(models.TransientModel):
                     [('woo_template_id', '=', woo_template.id), ('default_code', '=', False)]):
                 filter_templates.append(woo_template)
         return filter_templates
-
-    def get_all_product_for_export(self):
-        product_ids = self.env['product.template'].search([('product_brand_id.name', '=', 'Bru')])
-
-    # @api.multi
-    # @job
-    # def export_products(self):
 
     @api.multi
     def export_products(self):
