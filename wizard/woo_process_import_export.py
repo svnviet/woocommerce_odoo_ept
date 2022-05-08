@@ -20,7 +20,7 @@ class woo_process_import_export(models.TransientModel):
     publish = fields.Boolean("Publish In Website", default=False)
     update_image_in_product_export = fields.Boolean("Set Image", default=False)
     # VietNT
-    is_export_products_all = fields.Boolean("Export All Products", help="Export all product to woo with batch 10")
+    is_export_products_all = fields.Boolean("Export All Products", help="Export all product to woo with batch 1")
 
     is_export_products = fields.Boolean("Export Products", help="Export Products that are prepared for Woo Export.")
     sync_product_from_woo = fields.Boolean("Sync Products")
@@ -159,11 +159,6 @@ class woo_process_import_export(models.TransientModel):
         is_publish = True
         instances = self.env['woo.instance.ept'].search([('state', '=', 'confirmed')])
         product_woo_all = self.env['woo.product.product.ept'].search([])
-
-        # using for update product_tw_id from barcode
-        for product in product_woo_all:
-            product.product_tmpl_id.product_tw_id = product.product_tmpl_id.barcode
-
         for instance in instances:
             # Uncheck products are not exported
             products_check = self.env['woo.product.template.ept'].search(
@@ -175,8 +170,9 @@ class woo_process_import_export(models.TransientModel):
                 woo_templates = self.update_product_batch(instance)
                 if not woo_templates:
                     break
-                self.with_delay(description=f"Export Product {str(woo_templates.ids)}").export_products_all_wrapper(instance, woo_templates, is_set_price, is_set_stock
-                                                 , is_publish, is_set_image)
+                self.with_delay(description=f"Export Product {str(woo_templates.ids)}").export_products_all_wrapper(instance, woo_templates,
+                                                                                                                    is_set_price, is_set_stock
+                                                                                                                    , is_publish, is_set_image)
 
                 for template in woo_templates:
                     template.exported_in_woo = True
@@ -457,18 +453,10 @@ class woo_process_import_export(models.TransientModel):
 
         return
 
-    def check_duplicate_product_tw(self, product_tmpl_id):
-        product_obj = self.env['product.template']
-        product_tmpl_ids = product_obj.search([('product_tw_id', '=', product_tmpl_id.product_tw_id)])
-        if len(product_tmpl_ids.ids) > 1:
-            product_tmpl_id.unlink()
-            return True
-        return False
-
-# vietnt use for mass export product in twinbru
     def prepare_product_for_export(self):
         for i in range(0, 500):
-            bru_products = self.env['product.template'].search([('product_brand_id', '=', 11), ('export_odoo_in_woo_connector', '=', False)], limit=80)
+            bru_products = self.env['product.template'].search([('barcode', '!=', False), ('export_odoo_in_woo_connector', '=', False)],
+                                                               limit=80)
             if not bru_products:
                 break
             for product in bru_products:
@@ -476,43 +464,16 @@ class woo_process_import_export(models.TransientModel):
             self.with_delay(description="Prepare product for export ").prepare_product_for_export_job(bru_products)
 
     @job
-    def prepare_product_for_export_job(self, product_ids=''):
-    # def prepare_product_for_export(self):
-        #     _logger.info('Start compute barcode')
-        #     brand = self.env['product.brand'].search([('name', '=', 'Bru')])
-        #     product_tmpl = self.env['product.template'].search([('product_brand_id', '=', brand.id), ('product_tw_id', '=', True)])
-        #     for product in product_tmpl:
-        #         _logger.info(str(product.product_tw_id))
-        #         product.barcode = product.product_tw_id
-        #     # self.prepare_sync_product_bru(product_tmpl.ids)
-        #
-        # @api.multi
-        # def prepare_sync_product_bru(self):
-        _logger.info('---------------------------------------------')
+    def prepare_product_for_export_job(self, template_ids = []):
         woo_template_obj = self.env['woo.product.template.ept']
         woo_product_obj = self.env['woo.product.product.ept']
         woo_product_categ = self.env['woo.product.categ.ept']
         woo_product_image_obj = self.env['woo.product.image.ept']
-
-        # active_template_ids = self._context.get('active_ids', [])
-        # template_ids = self.env['product.template'].browse(active_template_ids)
-        # odoo_templates = template_ids.filtered(lambda template: template.type == 'product')
-    #edit get all product in twinbru
-        template_ids = product_ids
-        odoo_templates = 123
-        if not odoo_templates:
-            raise Warning(_('It seems like selected products are not Storable Products.'))
-        # for template in self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '=', False)]):
-        #     if self.check_duplicate_product_tw(template):
-        #         continue
-        #     ## update barcode == sku with product in twinbru
-        #     template.barcode = 'BRU00' + str(template.product_tw_id)
         odoo_templates = self.env['product.template'].search([('id', 'in', template_ids.ids), ('barcode', '!=', False)])
         if not odoo_templates:
             raise Warning("Barcode (SKU) not set in selected products")
         for instance in self.instance_ids:
             for odoo_template in odoo_templates:
-                woo_categ_ids = [(6, 0, [])]
                 perpare_woo_categ = []
                 if len(odoo_template.product_variant_ids.ids) == 1 and not odoo_template.barcode:
                     continue
@@ -550,10 +511,8 @@ class woo_process_import_export(models.TransientModel):
                         woo_product_image_obj.create(
                             {'sequence': 0, 'woo_instance_id': instance.id, 'image': odoo_template.image,
                              'woo_product_tmpl_id': woo_template.id})
-                        print('prepare main image ')
                     if odoo_template.product_image_ids:
                         i = 0
-                        print('prepare image')
                         for image in odoo_template.product_image_ids:
                             i += 1
                             woo_product_image_obj.create(
@@ -724,12 +683,10 @@ class woo_process_import_export(models.TransientModel):
     def export_products(self):
         instance_settings = {}
         config_settings = {}
-        logging.info('-------------------Export Product----------------------')
         is_set_price = False
         is_set_stock = False
         is_set_image = False
         is_publish = False
-
         woo_product_tmpl_obj = self.env['woo.product.template.ept']
         if self._context.get('process') == 'export_products':
             woo_template_ids = self._context.get('active_ids')
