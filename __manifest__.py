@@ -8,7 +8,7 @@
     'author': 'Emipro Technologies Pvt. Ltd.',
     'website': 'http://www.emiprotechnologies.com/',
     'maintainer': 'Emipro Technologies Pvt. Ltd.',
-    'depends': ['delivery','auto_invoice_workflow_ept',"queue_job"],
+    'depends': ['delivery','auto_invoice_workflow_ept','queue_job'],
     'data': ['security/group.xml',
              'data/import_order_status.xml',
              'data/product_data.xml',
