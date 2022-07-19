@@ -166,7 +166,7 @@ class woo_process_import_export(models.TransientModel):
 #             for product in products_check:
 #                 product.exported_in_woo = False
             # Starting create queue job
-            while True:
+            for i in range(0,2000):
                 woo_templates = self.update_product_batch(instance)
                 if not woo_templates:
                     break
@@ -189,7 +189,7 @@ class woo_process_import_export(models.TransientModel):
     def update_product_batch(self, instance):
 
         product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', instance.id),
-                                                                   ('exported_in_woo', '=', False)], limit=40)
+                                                                   ('exported_in_woo', '=', False)], limit=1)
         return product_ids
 
     @api.multi
@@ -456,7 +456,7 @@ class woo_process_import_export(models.TransientModel):
     def prepare_product_for_export(self):
 #         Uncheck product not in woo ept
 #         for product in self.env['product.template'].search([('export_odoo_in_woo_connector', '=', True)]):
-#             if self.env['woo_product_template_ept'].search([('product_tmpl_ept', '=', product.id)]):
+#             if self.env['woo.product.template.ept'].search([('product_tmpl_id.id', '=', product.id)]):
 #                 continue
 #             product.export_odoo_in_woo_connector = False
         for i in range(0, 500):
