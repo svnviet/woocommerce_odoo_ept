@@ -161,10 +161,10 @@ class woo_process_import_export(models.TransientModel):
         product_woo_all = self.env['woo.product.product.ept'].search([])
         for instance in instances:
             # Uncheck products are not exported
-            products_check = self.env['woo.product.template.ept'].search(
-                [('woo_instance_id', '=', instance.id), ('exported_in_woo', '=', True), ('woo_tmpl_id', '=', False)])
-            for product in products_check:
-                product.exported_in_woo = False
+#             products_check = self.env['woo.product.template.ept'].search(
+#                 [('woo_instance_id', '=', instance.id), ('exported_in_woo', '=', True), ('woo_tmpl_id', '=', False)])
+#             for product in products_check:
+#                 product.exported_in_woo = False
             # Starting create queue job
             while True:
                 woo_templates = self.update_product_batch(instance)
@@ -189,7 +189,7 @@ class woo_process_import_export(models.TransientModel):
     def update_product_batch(self, instance):
 
         product_ids = self.env['woo.product.template.ept'].search([('woo_instance_id', '=', instance.id),
-                                                                   ('exported_in_woo', '=', False)], limit=1)
+                                                                   ('exported_in_woo', '=', False)], limit=40)
         return product_ids
 
     @api.multi
@@ -454,18 +454,19 @@ class woo_process_import_export(models.TransientModel):
         return
 
     def prepare_product_for_export(self):
-        for product in self.env['product.template'].search([('export_odoo_in_woo_connector', '=', True)]):
-            if self.env['woo_product_template_ept'].search([('product_tmpl_ept', '=', product.id)]):
-                continue
-            product.export_odoo_in_woo_connector = False
-#         for i in range(0, 500):
-#             bru_products = self.env['product.template'].search([('barcode', '!=', False), ('export_odoo_in_woo_connector', '=', False)],
-#                                                                limit=80)
-#             if not bru_products:
-#                 break
-#             for product in bru_products:
-#                 product.export_odoo_in_woo_connector = True
-#             self.with_delay(description="Prepare product for export ").prepare_product_for_export_job(bru_products)
+#         Uncheck product not in woo ept
+#         for product in self.env['product.template'].search([('export_odoo_in_woo_connector', '=', True)]):
+#             if self.env['woo_product_template_ept'].search([('product_tmpl_ept', '=', product.id)]):
+#                 continue
+#             product.export_odoo_in_woo_connector = False
+        for i in range(0, 500):
+            bru_products = self.env['product.template'].search([('barcode', '!=', False), ('export_odoo_in_woo_connector', '=', False)],
+                                                               limit=80)
+            if not bru_products:
+                break
+            for product in bru_products:
+                product.export_odoo_in_woo_connector = True
+            self.with_delay(description="Prepare product for export ").prepare_product_for_export_job(bru_products)
 
     @job
     def prepare_product_for_export_job(self, template_ids = []):
