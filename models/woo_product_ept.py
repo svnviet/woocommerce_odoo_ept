@@ -3668,9 +3668,9 @@ class woo_product_template_ept(models.Model):
             template = woo_template.product_tmpl_id
             data = self.get_product_data(wcapi, instance, woo_template, publish, update_price, update_stock,
                                          update_image, template)
-
-            if not data.get('sku'):
-                data.update({'sku': 'BRU001' + data.get('barcode')})
+            is_bru_product = woo_template.product_branch_id.name == 'Bru'
+            if (is_bru_product):
+                data.update({'sku': 'BR00' + data.get('barcode')})
 
             new_product = wcapi.post('products', {'product': data})
 
